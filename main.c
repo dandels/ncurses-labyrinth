@@ -8,6 +8,8 @@ int drawmap();
 int x = 1;
 int y = 1;
 WINDOW *win;
+int lvl = 1;
+int winlvl();
 
 int main() {
     // Recommended by man page
@@ -41,7 +43,10 @@ int main() {
     keypad(win, TRUE);
 
     start_color();
+    // Color used for one-directional blocks like <, >, v and ^
     init_pair(1, COLOR_RED, COLOR_BLACK);
+    // Color used for the goal block, *
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);
 
     // Enable scrolling if moving past the terminal edge.
     //idlok(win, TRUE);
@@ -75,6 +80,11 @@ int drawmap(char *filename) {
                 wattron(win, COLOR_PAIR(1));
                 wprintw(win, "%c", c);
                 wattroff(win, COLOR_PAIR(1));
+                break;
+            case '*':
+                wattron(win, COLOR_PAIR(2));
+                wprintw(win, "%c", c);
+                wattroff(win, COLOR_PAIR(2));
                 break;
             default:
                  wprintw(win, "%c", c);
@@ -110,7 +120,9 @@ int inputloop() {
                 next_x++;
                 break;
         }
-        handlemovement(next_y, next_x);
+        if (handlemovement(next_y, next_x)) {
+            break;
+        }
         wrefresh(win);
     }
 
@@ -146,15 +158,29 @@ int handlemovement (int next_y, int next_x) {
                 y = next_y;
             }
             break;
+        case 554:
+            winlvl();
+            return 1;
+            break;
         case ' ':
             x = next_x;
             y = next_y;
             break;
         default:
             // Debug function for getting the code of the char we run into
-            // wprintw(win, "%d", nextchar);
+            //wprintw(win, "%d", nextchar);
             break;
     }
     wmove(win, y, x);
     return 0;
+}
+
+int winlvl() {
+    WINDOW* victorywin = newwin(3, 20, 10, 10);
+    wmove(victorywin, 1, 1);
+    box(victorywin, '|', '-');
+    wprintw(victorywin, "Level %d complete!", lvl);
+    wrefresh(victorywin);
+    wgetch(victorywin);
+    delwin(victorywin);
 }
