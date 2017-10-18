@@ -3,10 +3,10 @@
 #include <ncurses.h>
 
 int inputloop();
-int handlemovement(char keypress);
-int checkmovement(int y, int x);
-int x = 0;
-int y = 0;
+int handlemovement(int y, int x);
+int drawmap();
+int x = 1;
+int y = 1;
 
 int main() {
     // Necessary functions as per man page
@@ -23,6 +23,8 @@ int main() {
     intrflush(stdscr, FALSE);
     keypad(stdscr, TRUE);
 
+    drawmap("map.txt");
+    box(stdscr, '|', '-');
     inputloop();
 
     // Must be called before exiting so our terminal doesn't behave weirdly
@@ -30,58 +32,59 @@ int main() {
     return 0;
 }
 
+int drawmap(char *filename) {
+    FILE *fp;
+    int c;
+    fp = fopen(filename, "r");
+    while (1) {
+        c = fgetc(fp);
+        if (feof(fp)) {
+            break;
+        }
+        printw("%c", c);
+    }
+    fclose(fp);
+}
+
+
 int inputloop() {
     for (;;) {
-        char input = (char)getch();
-        switch (input) {
-            case 'h':
-            case 'j':
-            case 'k':
-            case 'l':
-                //mvaddstr(15, 15, "Hello, world!");
-                handlemovement(input);
-                break;
+        int next_x = x;
+        int next_y = y;
+        int keypress = getch();
+        switch (keypress) {
             case 'q':
                 return 0;
-            default:
+            case 'h':
+            case KEY_LEFT:
+                next_x--;
+                break;
+            case 'j':
+            case KEY_DOWN:
+                next_y++;
+                break;
+            case 'k':
+            case KEY_UP:
+                next_y--;
+                break;
+            case 'l':
+            case KEY_RIGHT:
+                next_x++;
                 break;
         }
-    }
-    return 0;
-}
-
-int handlemovement(char keypress) {
-    int new_x = x;
-    int new_y = y;
-    switch (keypress) {
-        case 'h':
-            new_x--;
-            break;
-        case 'j':
-            new_y++;
-            break;
-        case 'k':
-            new_y--;
-            break;
-        case 'l':
-            new_x++;
-            break;
-    }
-    if (checkmovement(new_y, new_x)) {
-        printw("a");
-        move(y,x);
+        handlemovement(next_y, next_x);
         refresh();
     }
+
     return 0;
 }
 
-int checkmovement (int new_y, int new_x) {
-    char nextchar = mvinch(new_y, new_x);
-    if (nextchar == 'a') {
+int handlemovement (int next_y, int next_x) {
+    char nextchar = mvinch(next_y, next_x);
+    if (nextchar == ' ') {
+        x = next_x;
+        y = next_y;
         return 0;
-    } else {
-        x = new_x;
-        y = new_y;
-        return 1;
     }
+    move(y,x);
 }
