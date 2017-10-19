@@ -44,16 +44,17 @@ int main() {
 
     start_color();
     // Color used for one-directional blocks like <, >, v and ^
-    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(1, COLOR_BLUE, COLOR_BLACK);
     // Color used for the goal block, *
     init_pair(2, COLOR_BLACK, COLOR_GREEN);
+    init_pair(3, COLOR_RED, COLOR_RED);
 
     // Enable scrolling if moving past the terminal edge.
     //idlok(win, TRUE);
     //scrollok(win, TRUE);
 
-    drawmap("map.txt");
-    box(win, '|', '-');
+    drawmap("lvl1.txt");
+    //box(win, '|', '-');
 
     inputloop();
 
@@ -85,6 +86,11 @@ int drawmap(char *filename) {
                 wattron(win, COLOR_PAIR(2));
                 wprintw(win, "%c", c);
                 wattroff(win, COLOR_PAIR(2));
+                break;
+            case 'o':
+                wattron(win, COLOR_PAIR(3));
+                wprintw(win, "%c", c);
+                wattroff(win, COLOR_PAIR(3));
                 break;
             default:
                  wprintw(win, "%c", c);
@@ -176,7 +182,7 @@ int handlemovement (int next_y, int next_x) {
 }
 
 int winlvl() {
-    WINDOW* victorywin = newwin(3, 20, 10, 10);
+    WINDOW* victorywin = newwin(3, 20, 1, 1);
     wmove(victorywin, 1, 1);
     box(victorywin, '|', '-');
     wprintw(victorywin, "Level %d complete!", lvl);
