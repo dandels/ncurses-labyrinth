@@ -1,19 +1,12 @@
-#include <stdio.h>
-#include <locale.h>
-#include <ncurses.h>
+#include "labyrinth.h"
 
-int inputloop();
-int handlemovement(int y, int x);
-int drawmap();
-int x = 1;
-int y = 1;
-WINDOW *win;
-int lvl = 1;
-int winlvl();
+int main(void) {
 
-int main() {
     // Recommended by man page
     setlocale(LC_ALL, "");
+
+    //printf("Which level would you like to start from? (0-1)");
+    //scanf("%d", currentlvl);
 
     initscr();
 
@@ -42,28 +35,43 @@ int main() {
     // Enable use of the keypad
     keypad(win, TRUE);
 
-    start_color();
-    // Color used for one-directional blocks like <, >, v and ^
-    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-    // Color used for the goal block, *
-    init_pair(2, COLOR_BLACK, COLOR_GREEN);
-    init_pair(3, COLOR_RED, COLOR_RED);
-
     // Enable scrolling if moving past the terminal edge.
     //idlok(win, TRUE);
     //scrollok(win, TRUE);
 
-    drawmap("lvl1.txt");
-    //box(win, '|', '-');
-
-    inputloop();
+    startgame();
 
     // Must be called before exiting so our terminal doesn't behave weirdly
     endwin();
     return 0;
 }
 
-int drawmap(char *filename) {
+int startgame() {
+    confcolors();
+    drawmap(levels[currentlvl]);
+    inputloop();
+    return 0;
+}
+
+int confcolors() {
+    start_color();
+
+    // In case we wanted to color our cursor, but let's leave this disabled for now
+    //printf("\e]12;%s\a", "green");
+    //fflush(stdout);
+
+    // Color used for one-directional blocks like <, >, v and ^
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+
+    // Color used for the goal block, *
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);
+
+    // Color used by the wall block, 'o'
+    init_pair(3, COLOR_RED, COLOR_RED);
+    return 0;
+}
+
+int drawmap(filename) char* filename; {
     wmove(win, 0, 0);
     FILE *fp;
     int c;
@@ -99,6 +107,7 @@ int drawmap(char *filename) {
     }
     fclose(fp);
     wmove(win, y, x);
+    return 0;
 }
 
 int inputloop() {
@@ -110,17 +119,21 @@ int inputloop() {
             case 'q':
                 return 0;
             case 'h':
+            case 'a':
             case KEY_LEFT:
                 next_x--;
                 break;
             case 'j':
+            case 's':
             case KEY_DOWN:
                 next_y++;
                 break;
             case 'k':
+            case 'w':
             case KEY_UP:
                 next_y--;
                 break;
+            case 'd':
             case 'l':
             case KEY_RIGHT:
                 next_x++;
@@ -136,9 +149,8 @@ int inputloop() {
 }
 
 int handlemovement (int next_y, int next_x) {
-    int nextchar = mvwinch(win, next_y, next_x);
-    // The int to compare has a different value depending on the color of the character, 
-    // so we use the int values as a workaround
+    chtype nextchar = mvwinch(win, next_y, next_x);
+    // We can't compare nextchar to '>' because '>' is colored. Using ints is a workaround.
     switch (nextchar) {
         // >
         case 318:
@@ -164,6 +176,7 @@ int handlemovement (int next_y, int next_x) {
                 y = next_y;
             }
             break;
+        // *
         case 554:
             winlvl();
             return 1;
@@ -182,11 +195,12 @@ int handlemovement (int next_y, int next_x) {
 }
 
 int winlvl() {
-    WINDOW* victorywin = newwin(3, 20, 1, 1);
+    WINDOW* victorywin = newwin(3, 19, 1, 1);
     wmove(victorywin, 1, 1);
     box(victorywin, '|', '-');
-    wprintw(victorywin, "Level %d complete!", lvl);
+    wprintw(victorywin, "Level %d complete!", currentlvl);
     wrefresh(victorywin);
     wgetch(victorywin);
     delwin(victorywin);
+    return 0;
 }
