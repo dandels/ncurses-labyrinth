@@ -5,6 +5,8 @@ This is the first non-trivial program I've written in C, based on an idea implem
 
 There are still a lot of bugs in it, but the first level is playable. Your game experience might vary depending on the terminal emulator and your color scheme.
 
+![A screenshot of the labyrinth game.](/screenshot.png)
+
 ## Dependencies
 * You'll need the development libraries for ncurses (*libncurses-dev* on Ubuntu) as well as a C-compiler like gcc or clang.
 * GNU Make is required for the *make* command to work. The makefile assumes you have gcc installed.
